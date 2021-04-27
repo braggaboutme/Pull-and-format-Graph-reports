@@ -186,7 +186,8 @@ $Header =
 #######################################
 #SecureScoreControls
 #######################################
-$SecureScoreURL = "$($GraphEndPoint)/security/secureScores"
+$top = '?$top=1'
+$SecureScoreURL = "$($GraphEndPoint)/security/secureScores$($top)"
 $SecureScores = Invoke-RestMethod -Method Get -Uri $($SecureScoreURL) -Headers $Header -ContentType "application/json"
 
 $SecureScoreList = [System.Collections.ArrayList]@()
@@ -211,7 +212,8 @@ $SecureScoreList | export-csv "$($csvpath)SecureScore.csv" -NoTypeInformation
 ########################################
 #Directory Audits
 ########################################
-$querydate = '2021-03-21'
+$today = Get-Date -Format yyyy-MM-dd
+$querydate = $($today)
 $filtervariable = '$filter'
 $filter = "?&$($filtervariable)=activityDateTime ge $($querydate)"
 $DirectoryAuditsURL = "$($GraphEndPoint)/auditLogs/directoryaudits$($filter)"
@@ -261,7 +263,8 @@ $AuditList | export-csv "$($csvpath)audit.csv" -NoTypeInformation
 ########################################
 #SignIns
 ########################################
-$querydate = '2021-01-01'
+$today = Get-Date -Format yyyy-MM-dd
+$querydate = $($today)
 $filtervariable = '$filter'
 $filter = "?&$($filtervariable)=createdDateTime ge $($querydate)"
 $SignInURL = "$($GraphEndPoint)/auditLogs/signIns$($filter)"
@@ -271,22 +274,10 @@ $SignInList = [System.Collections.ArrayList]@()
 
 foreach ($SignIn in $SignIns.value)
 {
-<#
-        $signinlocations = $SignIn.location
-        $signinlocationcity = $signinlocations | foreach-Object {$_.city}
-        $signinlocationcity = If ($signinlocationcity -ne $null) {$signinlocationcity -join ", "}
-        $targetUPN = $targets | foreach-Object {$_.userPrincipalName}
-        $targetsUPN = If ($targetUPN -ne $null) {$targetUPN -join ", "}
-        $targetid = $targets | foreach-Object {$_.id}
-        $targetsid = If ($targetid -ne $null) {$targetid -join ", "}
-        $targettype = $targets | foreach-Object {$_.type}
-        $targetstype = If ($targettype -ne $null) {$targettype -join ", "}
-        $targetmodifiedprop = $targets | foreach-Object {$_.modifiedproperties}
-        $targetsmodifiedprop = If ($targetmodifiedprop -ne $null) {$targetmodifiedprop -join ", "}
-        #>
-        
+       
             $FormattedSignIns = [pscustomobject][ordered]@{
             DateTime = $($SignIn.createdDateTime)
+            UserDisplayName = $($SignIn.userDisplayName)
             UPN = $($SignIn.userPrincipalName)
             appDisplayName = $($SignIn.appDisplayName)
             appId = $($SignIn.appId)
@@ -297,10 +288,20 @@ foreach ($SignIn in $SignIns.value)
             riskLevelDuringSignIn = $($SignIn.riskLevelDuringSignIn)
             riskDetail = $($SignIn.riskDetail)
             riskLevelAggregated = $($SignIn.riskLevelAggregated)
+            resourceDisplayName = $($SignIn.resourceDisplayName)
+            deviceDisplayName = $($SignIn.deviceDetail.displayName)
+            deviceOS = $($SignIn.deviceDetail.operatingSystem)
+            deviceBrowser = $($SignIn.deviceDetail.browser)
+            devicecompliant = $($SignIn.deviceDetail.isCompliant)
+            devicemanaged = $($SignIn.deviceDetail.isManaged)
+            signinfailureerrorcode = $($SignIn.status.errorCode)
+            signinfailureReason = $($SignIn.status.failureReason)
+            signinfailureReason1 = $($SignIn.status.additionalDetails)
             LocationCity = $($SignIn.location.city)
             LocationState = $($SignIn.location.state)
             LocationCountry = $($SignIn.location.countryOrRegion)
             LocationGeo = $($SignIn.location.geoCoordinates)
+            AppliedCAPolicies = $($SignIn.appliedConditionalAccessPolicies)
             
             } 
             
@@ -555,4 +556,3 @@ $result = $SharePointSiteUsagePages.Replace('ï»¿Report Refresh Date','Report 
 $resultarray = ConvertFrom-Csv -InputObject $result
 #Export result to CSV
 $resultarray | Export-Csv "$($csvpath)SharePointSiteUsagePages.csv" -NoTypeInformation
-
