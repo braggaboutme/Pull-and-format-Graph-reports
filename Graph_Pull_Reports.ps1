@@ -186,7 +186,7 @@ $Header =
 #######################################
 #SecureScoreControls
 #######################################
-$SecureScoreURL = "$($GraphEndPointBeta)/security/secureScores"
+$SecureScoreURL = "$($GraphEndPoint)/security/secureScores"
 $SecureScores = Invoke-RestMethod -Method Get -Uri $($SecureScoreURL) -Headers $Header -ContentType "application/json"
 
 $SecureScoreList = [System.Collections.ArrayList]@()
